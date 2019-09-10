@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace：填写的是监听的Mapper权限命名的接口 -->
+<mapper namespace="cn.ssm.dao.StudentMapper">
+ <select id="selectUserinfo" parameterType="cn.ssm.dao.bean.Userinfo" resultType="cn.ssm.dao.bean.Userinfo">
+    select * from userinfo
+  </select>
+  
+<!--   <insert id="addList" parameterType="java.util.List" useGeneratedKeys="false">
+        INSERT INTO userinfo
+        (
+            ID,
+            name,
+            password
+        )
+        <foreach item="item" index="index" collection="list" separator="union all">
+        (
+            SELECT 
+                #{item.id},
+                #{item.name},
+                #{item.password}
+            FROM DUAL
+        )
+        </foreach>
+    </insert> -->
+  
+  
+<!--   
+mybatis  oracle中 批量插入数据(有：自动生成主键的时候) -->
+  <sql id="base_column_sql">
+    id,name,password
+  </sql>
+  <insert id="addList" parameterType="java.util.List" useGeneratedKeys="false">
+     <selectKey resultType="long" keyProperty="id" order="BEFORE"> 
+         SELECT seq_userinfo.NEXTVAL FROM DUAL 
+     </selectKey> 
+ 	 insert into userinfo 
+      (<include refid="base_column_sql" />)
+     select  seq_userinfo.NEXTVAL,A.*  from(
+     <!-- 这里的foreach和存在主键的时候插入的 foreach一样 -->
+    <foreach collection="list" item="item" index="index" separator="UNION ALL">
+          SELECT
+	        #{item.name,jdbcType=VARCHAR},
+	        #{item.password,jdbcType=VARCHAR}
+          FROM dual
+    </foreach>
+	)A
+  </insert>  
+  
+  
+</mapper>
+
+<!-- mybatis  oracle中 批量插入数据(有：自动生成主键的时候)
+  <insert id="insertListMaterial" parameterType="java.util.List" useGeneratedKeys="false">
+     <selectKey resultType="long" keyProperty="id" order="BEFORE"> 
+         SELECT seq_mas_salesdemand_material.NEXTVAL FROM DUAL 
+     </selectKey> 
+ 	insert into mas_salesdemand_material 
+      (<include refid="Base_Column_List" />)
+     select  seq_mas_salesdemand_material.NEXTVAL,A.*  from( //需要查询
+    <foreach collection="list" item="item" index="index" separator="UNION ALL">//这里的foreach和存在主键的时候插入的 foreach一样，
+          SELECT
+	        #{item.demandId,jdbcType=DECIMAL},
+	        #{item.materialId,jdbcType=DECIMAL},
+	        #{item.materialCount,jdbcType=DECIMAL},
+	        #{item.haveCount,jdbcType=DECIMAL}
+          FROM dual
+      </foreach>
+	)A
+  </insert>   -->
+  
+  
+  
+  
+<!--     mybatis  oracle中 批量插入数据(无：自动生成主键)  和 mybatis的插入语句相似，但是 separator="union all"这里不一样,foreach 中内容有点不同。
+
+  语法： insert into table(...) (select ... from dual) union all (select ... from dual)
+  
+例子：
+
+	<insert id="addList" parameterType="java.util.List" useGeneratedKeys="false">
+        INSERT INTO T_APPLAUD
+        (
+            ID,
+            USER_ID,
+            BUSINESS_TYPE,
+            PRODUCT_ID,
+            CREATE_TIME
+        )
+        <foreach item="item" index="index" collection="list" separator="union all">
+        (
+            SELECT 
+                #{item.id},
+                #{item.userId},
+                #{item.businessType},
+                #{item.productId},
+                #{item.createdTime} 
+            FROM DUAL
+        )
+        </foreach>
+    </insert> -->
